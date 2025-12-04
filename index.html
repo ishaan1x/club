@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DooPlay Ultimate</title>
+    <style>
+        /* --- CSS VARIABLES (COLOR THEMES) --- */
+        :root {
+            /* Default Dark Mode Colors */
+            --bg-body: #050505;
+            --bg-card: #141414;
+            --bg-input: #222;
+            --text-main: #ffffff;
+            --text-sub: #b3b3b3;
+            --border-color: #333;
+            --shadow: rgba(0,0,0,0.8);
+            --filter-btn-bg: #222;
+            --filter-btn-text: #ccc;
+        }
+
+        /* LIGHT MODE OVERRIDES */
+        body.light-mode {
+            --bg-body: #f4f4f4;
+            --bg-card: #ffffff;
+            --bg-input: #e0e0e0;
+            --text-main: #111111;
+            --text-sub: #555555;
+            --border-color: #ddd;
+            --shadow: rgba(0,0,0,0.1);
+            --filter-btn-bg: #e0e0e0;
+            --filter-btn-text: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main);
+            padding-bottom: 80px;
+            transition: background 0.3s, color 0.3s; /* Smooth Transition */
+        }
+
+        /* HEADER */
+        header {
+            background: var(--bg-card);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px var(--shadow);
+            transition: background 0.3s;
+        }
+
+        .logo { font-size: 22px; font-weight: 800; text-transform: uppercase; }
+        .logo span { color: #00ffcc; }
+
+        /* THEME TOGGLE BUTTON */
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.3s;
+        }
+        .theme-toggle:hover { transform: rotate(15deg) scale(1.1); }
+
+        /* CONTROLS */
+        .controls-area {
+            position: sticky;
+            top: 70px;
+            z-index: 90;
+            background: var(--bg-body);
+            padding: 10px 0;
+            transition: background 0.3s;
+        }
+
+        .search-box { padding: 0 15px 10px 15px; }
+        input#searchBar {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-main);
+            outline: none;
+            transition: 0.3s;
+        }
+
+        /* Filter Scroll */
+        .filter-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 0 15px;
+            scrollbar-width: none;
+        }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+
+        .filter-btn {
+            background: var(--filter-btn-bg);
+            border: 1px solid var(--border-color);
+            color: var(--filter-btn-text);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .filter-btn.active { 
+            background: #007bff; 
+            color: #fff; 
+            border-color: #007bff; 
+        }
+
+        /* GRID */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px 15px;
+        }
+        @media(min-width: 768px) { .movie-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
+
+        /* --- RGB CARD DESIGN --- */
+        .movie-card {
+            position: relative;
+            background: var(--bg-card);
+            border-radius: 10px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        /* RGB GLOW ANIMATION */
+        .movie-card::before {
+            content: "";
+            position: absolute;
+            inset: -2px; 
+            z-index: -1;
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            border-radius: 12px;
+            animation: rgbGlow 8s linear infinite;
+        }
+        @keyframes rgbGlow {
+            0% { background-position: 0 0; }
+            50% { background-position: 300% 0; }
+            100% { background-position: 0 0; }
+        }
+
+        .card-content {
+            background: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s;
+        }
+
+        .poster { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; display: block; }
+
+        .quality {
+            position: absolute;
+            top: 10px; right: 0;
+            background: linear-gradient(90deg, #00ffcc, #007bff);
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .movie-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; }
+
+        .movie-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 5px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .movie-desc {
+            font-size: 11px;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .download-btn {
+            margin-top: auto;
+            display: block; width: 100%;
+            padding: 10px 0;
+            background: var(--bg-input);
+            color: var(--text-main);
+            text-align: center; text-decoration: none;
+            font-size: 12px; font-weight: bold;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: 0.3s;
+        }
+        .download-btn:active { background: #007bff; color: #fff; }
+
+        /* PAGINATION */
+        .pagination { display: flex; justify-content: center; margin-top: 30px; gap: 15px; }
+        .page-btn { 
+            padding: 10px 20px; 
+            background: var(--bg-card); 
+            color: var(--text-main); 
+            border: 1px solid var(--border-color); 
+            border-radius: 5px; 
+            cursor: pointer;
+        }
+
+        /* TELEGRAM */
+        .telegram-float {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 55px; height: 55px;
+            background: #0088cc; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            z-index: 1000;
+        }
+        .telegram-float svg { width: 28px; fill: white; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Movie<span>Zone</span></div>
+        <!-- Light/Dark Mode Button -->
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+            ☀
+        </button>
+    </header>
+
+    <div class="controls-area">
+        <div class="search-box">
+            <input type="text" id="searchBar" placeholder="Search movies..." onkeyup="searchPosts()">
+        </div>
+        <div class="filter-scroll">
+            <button class="filter-btn active" onclick="filterPosts('all')">All</button>
+            <button class="filter-btn" onclick="filterPosts('Action')">Action</button>
+            <button class="filter-btn" onclick="filterPosts('Drama')">Drama</button>
+            <button class="filter-btn" onclick="filterPosts('Sci-Fi')">Sci-Fi</button>
+            <button class="filter-btn" onclick="filterPosts('Horror')">Horror</button>
+            <button class="filter-btn" onclick="filterPosts('Comedy')">Comedy</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="movie-grid" id="postContainer"></div>
+        
+        <div class="pagination">
+            <button class="page-btn" id="prevBtn" onclick="changePage(-1)">Prev</button>
+            <span id="pageInfo" style="align-self:center; color:var(--text-sub); font-size:12px;">1/5</span>
+            <button class="page-btn" id="nextBtn" onclick="changePage(1)">Next</button>
+        </div>
+    </div>
+
+    <a href="https://t.me/YOUR_CHANNEL_LINK" class="telegram-float">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.054 5.56-5.022c.242-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.944z"/></svg>
+    </a>
+
+    <script>
+        /* --- THEME LOGIC --- */
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const btn = document.getElementById('themeToggle');
+            const isLight = document.body.classList.contains('light-mode');
+            
+            // Icon Change (Sun/Moon)
+            btn.innerHTML = isLight ? '☾' : '☀'; 
+            
+            // Save Preference
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        }
+
+        // Load Saved Theme
+        if(localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('themeToggle').innerHTML = '☾';
+        }
+
+        /* --- POST DATA --- */
+        const postsData = [
+            {
+                title: "Avengers: Endgame",
+                category: "Action",
+                quality: "4K",
+                image: "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+                desc: "The universe is in ruins. The Avengers assemble once more to reverse Thanos' actions.",
+                downloadLink: "#"
+            },
+            {
+                title: "Thamma (2025)",
+                category: "Horror",
+                quality: "WEB-DL",
+                image: "https://image.tmdb.org/t/p/w500/wVYREutTvIqxpdXbcSzVuLE757V.jpg",
+                desc: "A terrifying horror story about a village haunted by a mysterious entity known as Thamma.",
+                downloadLink: "#"
+            },
+            {
+                title: "Spider-Man: NWH",
+                category: "Action",
+                quality: "IMAX",
+                image: "https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4GY0d.jpg",
+                desc: "Peter Parker seeks Doctor Strange's help to make people forget his identity.",
+                downloadLink: "#"
+            },
+            {
+                title: "Interstellar",
+                category: "Sci-Fi",
+                quality: "1080p",
+                image: "https://image.tmdb.org/t/p/w500/gEU2QniL6E77AAyfYmw16XV6Uwq.jpg",
+                desc: "Explorers travel through a wormhole in space to ensure humanity's survival.",
+                downloadLink: "#"
+            },
+             { title: "Pushpa 2", category: "Action", quality: "CAM", image: "https://via.placeholder.com/300x533/222/fff?text=Pushpa+2", desc: "Pushpa Raj returns to rule the red sandalwood smuggling syndicate.", downloadLink: "#" },
+            { title: "Kalki 2898 AD", category: "Sci-Fi", quality: "WEB-DL", image: "https://via.placeholder.com/300x533/222/fff?text=Kalki", desc: "A modern avatar of Vishnu descends to earth to protect the world.", downloadLink: "#" },
+            { title: "Deadpool 3", category: "Action", quality: "HD", image: "https://via.placeholder.com/300x533/222/fff?text=Deadpool", desc: "Wolverine is recovering when he crosses paths with Deadpool.", downloadLink: "#" },
+            { title: "Stree 2", category: "Horror", quality: "HD", image: "https://via.placeholder.com/300x533/222/fff?text=Stree+2", desc: "The town of Chanderi is haunted again by a headless ghost.", downloadLink: "#" }
+        ];
+
+        /* --- RENDER LOGIC --- */
+        const itemsPerPage = 10;
+        let currentPage = 1;
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        const container = document.getElementById('postContainer');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        function renderPosts() {
+            container.innerHTML = '';
+            
+            let filteredPosts = postsData.filter(post => {
+                const matchCategory = currentCategory === 'all' || post.category === currentCategory;
+                const matchSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchCategory && matchSearch;
+            });
+
+            const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
+            if(currentPage > totalPages) currentPage = 1;
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedPosts = filteredPosts.slice(start, end);
+
+            if(paginatedPosts.length === 0) {
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--text-sub);">No movies found.</div>';
+            } else {
+                paginatedPosts.forEach(post => {
+                    const card = `
+                        <div class="movie-card">
+                            <div class="quality">${post.quality}</div>
+                            <div class="card-content">
+                                <img src="${post.image}" alt="${post.title}" class="poster">
+                                <div class="movie-info">
+                                    <h3 class="movie-title">${post.title}</h3>
+                                    <p class="movie-desc">${post.desc}</p>
+                                    <a href="${post.downloadLink}" class="download-btn">Download</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+            }
+
+            pageInfo.innerText = `${currentPage} / ${totalPages || 1}`;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage >= totalPages || totalPages === 0;
+        }
+
+        function filterPosts(category) {
+            currentCategory = category;
+            currentPage = 1;
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPosts();
+        }
+
+        function searchPosts() {
+            searchQuery = document.getElementById('searchBar').value;
+            currentPage = 1;
+            renderPosts();
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderPosts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        renderPosts();
+    </script>
+</body>
+</html>
